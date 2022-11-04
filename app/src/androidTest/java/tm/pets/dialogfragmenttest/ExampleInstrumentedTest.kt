@@ -42,7 +42,7 @@ class ExampleInstrumentedTest {
             )
         }
         val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
-        repeat(3) {
+        repeat(10) {
             Log.d("SAMPLE_APP", "started $it")
             waitLauncher(device)
             waitSimpleApp(device)

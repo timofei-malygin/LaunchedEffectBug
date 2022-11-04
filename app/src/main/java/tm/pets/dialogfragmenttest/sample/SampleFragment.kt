@@ -42,8 +42,8 @@ class SampleFragment : BottomSheetDialogFragment() {
     ): View {
         val view = inflater.inflate(R.layout.fragment_main, container, false)
         view.findViewById<ComposeView>(R.id.compose).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-//            setViewCompositionStrategy()
+//            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setViewCompositionStrategy(CustomViewCompositionStrategy(viewLifecycleOwner.lifecycle))
             setContent {
                 val action by vm.items.collectAsStateWithLifecycle(
                     initialValue = 0,
