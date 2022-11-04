@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -45,10 +46,8 @@ class SampleFragment : BottomSheetDialogFragment() {
 //            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setViewCompositionStrategy(CustomViewCompositionStrategy(viewLifecycleOwner.lifecycle))
             setContent {
-                val action by vm.items.collectAsStateWithLifecycle(
-                    initialValue = 0,
-                    viewLifecycleOwner.lifecycle
-                )
+//                val action by vm.items.collectAsStateWithLifecycle(initialValue = 0, viewLifecycleOwner.lifecycle)
+                val action by vm.items.collectAsState(initial = 0)
                 LaunchedEffect(action) {
 //                    if(!isStateSaved)
                     StaticMethod.func(action)
