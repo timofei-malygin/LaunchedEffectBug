@@ -17,6 +17,7 @@ import org.junit.Assert.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
 import tm.pets.dialogfragmenttest.sample.StaticMethod
+import tm.pets.dialogfragmenttest.sample.TAG
 
 /**
  * Instrumented test, which will execute on an Android device.
@@ -35,10 +36,14 @@ class ExampleInstrumentedTest {
     @Test
     fun noEventsAfterOnSaveInstanceState() = runBlocking {
         StaticMethod.func = {
-            assertFalse("we don't expect call this after onStop", StaticMethod.isStopped)
+            Log.d(
+                TAG,
+                "Consumed index = $it, delta = ${System.currentTimeMillis() - it.time}"
+            )
+            assertFalse("we don't expect call this after onStop", StaticMethod.isStopped.get())
             assertFalse(
                 "we don't expect call this after OnSavedInstanceStateCalled",
-                StaticMethod.isOnSaveInstanceStateCalled
+                StaticMethod.isOnSaveInstanceStateCalled.get()
             )
         }
         val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
