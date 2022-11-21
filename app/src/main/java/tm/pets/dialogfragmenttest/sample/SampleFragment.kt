@@ -8,14 +8,16 @@ import android.view.ViewGroup
 import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.flowWithLifecycle
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import tm.pets.dialogfragmenttest.R
 import java.lang.Thread.sleep
 import java.util.concurrent.atomic.AtomicBoolean
@@ -31,11 +33,9 @@ object StaticMethod {
         )
     }
 
-    @Volatile
-    var isStopped = AtomicBoolean(false)
-
-    @Volatile
-    var isOnSaveInstanceStateCalled = AtomicBoolean(false)
+    val isStopped = AtomicBoolean(false)
+    val isOnSaveInstanceStateCalled = AtomicBoolean(false)
+    var brokenCase = true
 }
 
 class SampleFragment : Fragment() {
@@ -51,42 +51,40 @@ class SampleFragment : Fragment() {
         vm.lifecycle = viewLifecycleOwner.lifecycle
         val view = inflater.inflate(R.layout.fragment_main, container, false)
         view.findViewById<ComposeView>(R.id.compose).apply {
-//            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+            // tried any of ViewCompositionStrategy
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+//            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
 //            setViewCompositionStrategy(CustomViewCompositionStrategy(viewLifecycleOwner.lifecycle))
             setContent {
                 val event: Event by vm.items.collectAsStateWithLifecycle(
                     viewLifecycleOwner.lifecycle
                 )
-//                val event by vm.items.collectAsState()
-                LaunchedEffect(event) {
-                    if (!isStateSaved)
-                        viewLifecycleOwner.lifecycleScope.launchWhenResumed {
-                            Log.d(
-                                TAG,
-                                viewLifecycleOwner.lifecycle.currentState.toString() + " - " + isStateSaved + " " + isActive
-                            )
-                            StaticMethod.func(event)
+                if (StaticMethod.brokenCase) {
+                    LaunchedEffect(event) {
+                        Log.d(
+                            TAG,
+                            viewLifecycleOwner.lifecycle.currentState.toString() + " - " + isStateSaved + " " + isActive
+                        )
+                        StaticMethod.func(event)
+                    }
+                } else {
+                    val scope = rememberCoroutineScope()
+                    LaunchedEffect(key1 = Unit) {
+                        scope.launch {
+                            vm
+                                .items
+                                .flowWithLifecycle(viewLifecycleOwner.lifecycle)
+                                .collect { event ->
+                                    Log.d(
+                                        TAG,
+                                        viewLifecycleOwner.lifecycle.currentState.toString() + " - " + isStateSaved + " " + isActive
+                                    )
+                                    StaticMethod.func(event)
+                                }
                         }
+                    }
+
                 }
-
-                // This works
-//                val scope = rememberCoroutineScope()
-//                LaunchedEffect(key1 = Unit) {
-//                    scope.launch {
-//                        vm
-//                            .items
-//                            .flowWithLifecycle(viewLifecycleOwner.lifecycle)
-//                            .collect { event ->
-//                                Log.d(
-//                                    TAG,
-//                                    viewLifecycleOwner.lifecycle.currentState.toString() + " - " + isStateSaved + " " + isActive
-//                                )
-//                                StaticMethod.func(event)
-//                            }
-//                    }
-//                }
-
                 Text(text = "action is $event")
             }
         }
