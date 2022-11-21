@@ -9,7 +9,6 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers.notNullValue
 import org.junit.Assert.assertFalse
@@ -17,36 +16,42 @@ import org.junit.Assert.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
 import tm.pets.dialogfragmenttest.sample.StaticMethod
-
-/**
- * Instrumented test, which will execute on an Android device.
- *
- * See [testing documentation](http://d.android.com/tools/testing).
- */
+import tm.pets.dialogfragmenttest.sample.TAG
 
 private const val LAUNCH_TIMEOUT = 5000L
 
 @RunWith(AndroidJUnit4::class)
-class ExampleInstrumentedTest {
+class LaunchedEffectTests {
 
     private val appPackage
         get() = InstrumentationRegistry.getInstrumentation().targetContext.packageName
 
     @Test
-    fun noEventsAfterOnSaveInstanceState() = runBlocking {
-        StaticMethod.func = {
-            assertFalse("we don't expect call this after onStop", StaticMethod.isStopped)
-            assertFalse(
-                "we don't expect call this after OnSavedInstanceStateCalled",
-                StaticMethod.isOnSaveInstanceStateCalled
-            )
-        }
-        val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
-        repeat(10) {
-            Log.d("SAMPLE_APP", "started $it")
-            waitLauncher(device)
-            waitSimpleApp(device)
-            delay(10)
+    fun requireNoEventsAfterOnSaveInstanceStateFailed() = runTest(true)
+
+    @Test
+    fun requireNoEventsAfterOnSaveInstanceStateSuccess() = runTest(false)
+
+    private fun runTest(useBrokenCase: Boolean) {
+        runBlocking {
+            StaticMethod.brokenCase = useBrokenCase
+            StaticMethod.func = {
+                Log.d(
+                    TAG,
+                    "Consumed index = $it, delta = ${System.currentTimeMillis() - it.time}"
+                )
+                assertFalse("we don't expect call this after onStop", StaticMethod.isStopped.get())
+                assertFalse(
+                    "we don't expect call this after OnSavedInstanceStateCalled",
+                    StaticMethod.isOnSaveInstanceStateCalled.get()
+                )
+            }
+            val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+            repeat(100) {
+                Log.d("SAMPLE_APP", "started $it")
+                waitLauncher(device)
+                waitSimpleApp(device)
+            }
         }
     }
 
