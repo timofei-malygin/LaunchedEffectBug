@@ -12,7 +12,7 @@ We need to collect data and proceed it only when Fragment in state onStart (e.x.
 - the app will hide and open without a crash
 
 ## Actual
-- crashed because we call somemething after onSavedInstanceState.
+- crashed because we call something after onSavedInstanceState.
 
 ## Additional information and logs
 The application logs the lifecycle state and an event  
